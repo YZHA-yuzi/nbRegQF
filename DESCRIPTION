@@ -1,0 +1,12 @@
+Package: nbRegQF
+Type: Package
+Title: Fit negative-binomial regression with exposure quantile functions as the covariate
+Version: 1.0
+Date: 2022-11-23
+Author: Yuzi Zhang
+Maintainer: Yuzi Zhang <yuzi.zhang@emory.edu>
+Description: Functions to fit negative-binomial regression models using exposure quantile functions as the covariate to estimate effects of short-term environmental exposures in a time-series design. 
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.7), BayesLogit, Matrix, MASS, truncnorm, igraph, quadprog
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 7.1.2
