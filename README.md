@@ -1,6 +1,14 @@
 README
 ================
 
+# Installation
+
+``` r
+install.packages("devtools")
+library(devtools)
+install_github("YZHA-yuzi/nbRegQF")
+```
+
 # Fit negative-binomial regression treating known/estimated exposure quantile functions as the covariate
 
 In this document, we aim to demonstrate: (1) the use of the function
