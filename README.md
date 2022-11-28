@@ -126,4 +126,4 @@ re.fit.knownquan <- fit.health.knownquan(y = y.vec,
 
 Check trace plots of the intercept, basis coefficients, and the
 over-dispersion parameter. ![This is an
-image](./Res/trace_knownquan.png)
+image](./results/trace_knownquan.png)
