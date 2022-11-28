@@ -18,13 +18,20 @@ the functional covariate is given below
 
 $$
 \\begin{align\*}
-Y_i &\\sim NB(\\eta_i, \\xi) \\\\
-E\[Y_i\] &= \\xi \\exp(\\eta_i) \\\\
-\\eta_i &= \\int_0^1 \\beta(\\tau) Q_i(\\tau) + \\boldsymbol{\\gamma}^T\\boldsymbol{Z}\_i + \\boldsymbol{\\epsilon}\_i
+&Y_i \\sim NB(\\eta_i, \\xi) , \\; \\; \\; E\[Y_i\] = \\xi \\exp(\\eta_i), \\\\
+&\\eta_i = \\int_0^1 \\beta(\\tau) Q_i(\\tau) + \\boldsymbol{\\gamma}^T\\boldsymbol{Z}\_i + \\epsilon_i,
 \\end{align\*}
 $$
+where *y*<sub>*i*</sub> denotes aggregated counts (i.e., the number
+deaths) observed at the time point *i*, *Q*<sub>*i*</sub>(*τ*) is the
+exposure quantile function of a continuous exposure at the time point
+*i*, **Z**<sub>*i*</sub> is a vector of other covariates,
+*ϵ*<sub>*i*</sub> represents a mean-zero residual process, and *ξ* is
+the over-dispersion parameter.
 
 ## Example 1: Exposure quantile functions are independent across time points
+
+### Simulate data
 
 Let’s simulate individual-level exposures and aggregate health outcomes
 assuming data are collected over 1000 time points.
@@ -44,8 +51,55 @@ sd.vec = rnorm(num.time, mean = 1, sd = 0.2)
 x.sim.mat <- do.call(rbind, lapply(1:num.time, function(x) 
                                      rnorm(num.size.time, 
                                            mean.vec[x], sd.vec[x])))
-# kbl(nobs.vec.print, booktabs = T) %>% 
-#    kable_styling(latex_options = c("hold_position")) 
 ```
 
-We then generate aggregate health outcomes by assuming *β*(*τ*) = *τ*.
+We then generate aggregate health outcomes by assuming
+*η*<sub>*i*</sub> = *β*<sub>0</sub> + ∫<sub>0</sub><sup>1</sup>*β*(*τ*)*Q*<sub>*i*</sub>(*τ*)
+and *β*(*τ*) = *τ*.
+
+``` r
+## specify the beta(tau) 
+betatau.true <- function(x) {x}
+## simulate aggregate health outcomes 
+integral <- function(x, betatau.fun, mean, sd){
+  re = betatau.fun(x)*qnorm(x, mean = mean, sd = sd)
+  return(re)
+}
+integration.vec <- do.call(rbind,
+                           lapply(1:num.time,
+                                  function(y)
+                                    integrate(integral, lower = 0, upper = 1,
+                                              betatau.fun = betatau.true,
+                                              mean = mean.vec[y],
+                                              sd = sd.vec[y])$value))
+
+## intercept in the health model
+beta0 = -3.5
+## the over-dispersion parameter 
+xi = 20 
+eta.vec.true = beta0 + integration.vec
+q.nb = 1/(1+exp(eta.vec.true))
+y.vec <- apply(cbind(rep(xi, num.time), q.nb), 1,
+               function(x) rnbinom(1, size = x[1], prob = x[2]))
+```
+
+### Fit the health model assuming exposure quantile functions are known
+
+The *β*(*τ*) is modeled via the basis expansion. Specifically, *β*(*τ*)
+is expanded using orthonormal Bernstein polynomials of degree *n*, in
+this example we set *n* = 1. To approximate *β*(*τ*) = *τ* using
+orthonormal Bernstein polynomials of degree 1, true values of basis
+coefficients are (0.288,0.500).
+
+``` r
+re.fit.knownquan <- fit.health.knownquan(y = y.vec,
+                                         Z.design = NULL,
+                                         n = 1, dist.type = "normal",
+                                         mean = mean.vec, sd = sd.vec,
+                                         rand.int = FALSE,
+                                         niter = 5000, burn_in = 2500)
+```
+
+Check trace plots of the intercept, basis coefficients, and the
+over-dispersion parameter. ![This is an
+image](./results/trace_knownquan.png)
