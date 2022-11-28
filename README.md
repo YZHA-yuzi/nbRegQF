@@ -1,14 +1,15 @@
 # Fit negative-binomial regression treating known/estimated exposure quantile functions as the covariate
 
-In this document, we aim to demonstrate: (1) the use of the function to
-fit negative-binomial (NB) regression models using known exposure
-quantile functions as the covariate to estimate short-term effects of
-environmental exposures in a time-series design, (2) the use of function
-to estimate exposure quantile functions using previously proposed
-semiparametric Bayesian approaches based on individual-level exposures,
-(3) the use of to fit NB regression models using estimated exposure
-quantile functions while accounting for uncertainties associated with
-estimating quantile functions.
+In this document, we aim to demonstrate: (1) the use of the function
+`fit.health.knownquan` to fit negative-binomial (NB) regression models
+using known exposure quantile functions as the covariate to estimate
+short-term effects of environmental exposures in a time-series design,
+(2) the use of function `fit.exposure` to estimate exposure quantile
+functions using previously proposed semiparametric Bayesian approaches
+based on individual-level exposures, (3) the use of
+`fit.health.quan.errors` to fit NB regression models using estimated
+exposure quantile functions while accounting for uncertainties
+associated with estimating quantile functions.
 
 ## The health model
 
