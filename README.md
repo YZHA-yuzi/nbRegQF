@@ -1,17 +1,15 @@
 README
 ================
 
-# Installation
+We have proposed a negative-binomial modeling framework which uses
+exposure quantile functions as the function covaraite to account for
+within-unit exposure heterogeneity for studying short-term effects of
+environmental exposures using exposure and health data collected across
+time and/or space. This proposed approch has been implemented in an R
+package `nbRegQF`.
 
-``` r
-install.packages("devtools")
-library(devtools)
-install_github("YZHA-yuzi/nbRegQF")
-```
-
-# Fit negative-binomial regression treating known/estimated exposure quantile functions as the covariate
-
-In this document, we aim to demonstrate: (1) the use of the function
+In this document, we first introduce how to install the package. Then,
+we aim to demonstrate: (1) the use of the function
 `fit.health.knownquan` to fit negative-binomial (NB) regression models
 using known exposure quantile functions as the covariate to estimate
 short-term effects of environmental exposures in a time-series design,
@@ -25,6 +23,16 @@ inputs for the function `fit.health.quan.errors`, and (4) the use of
 `fit.health.quan.errors` to fit NB regression models using estimated
 exposure quantile functions while accounting for uncertainties
 associated with estimating quantile functions.
+
+# Installation
+
+``` r
+install.packages("devtools")
+library(devtools)
+install_github("YZHA-yuzi/nbRegQF")
+```
+
+# Fit negative-binomial regression treating known/estimated exposure quantile functions as the covariate
 
 ## The health model
 
@@ -127,6 +135,21 @@ using orthonormal Bernstein polynomials of degree
 coefficients are
 ![(0.288, 0.500)](https://latex.codecogs.com/png.latex?%280.288%2C%200.500%29 "(0.288, 0.500)").
 
+Use the function `get_beta_bernstein` in the package `nbRegQF` to
+compute true values of basis coefficients in the basis expansion applied
+for modeling
+![\\beta(\\tau) = \\tau](https://latex.codecogs.com/png.latex?%5Cbeta%28%5Ctau%29%20%3D%20%5Ctau "\beta(\tau) = \tau").
+
+``` r
+beta.true <- c(beta0,
+               sapply(0:1, 
+                      function(x) 
+                        get_beta_bernstein(x, n = 1, f = function(y){y})))
+```
+
+Use the function `fit.health.knownquan` to fit the NB model assuming
+exposure quantile functions are known.
+
 ``` r
 re.fit.knownquan <- fit.health.knownquan(y = y.vec,
                                          Z.design = NULL,
@@ -138,6 +161,24 @@ re.fit.knownquan <- fit.health.knownquan(y = y.vec,
 
 Check trace plots of the intercept, basis coefficients, and the
 over-dispersion parameter.
+
+``` r
+beta.post.knownquan <- re.fit.knownquan$beta
+par(mfrow = c(2, 2))
+for(i in 1:3){
+  plot(beta.post.knownquan[,i], type = "l", ylab = paste0("beta", i-1))
+  abline(h = beta.true[i], col = "red")
+  if(i == 1){
+    legend("topright", col = "red", lty = 1, legend = "true value")
+  }else{
+    legend("bottomright", col = "red", lty = 1, legend = "true value")
+  }
+}
+plot(re.fit.knownquan$parm[,"xi"], type = "l", ylab = "over-dispersion parameter")
+abline(h = xi, col = "red")
+legend("bottomright", col = "red", lty = 1, legend = "true value")
+```
+
 ![tracepl_gauind](./images/trace_knownquan.png)
 
 ### Estimate quantile functions
@@ -191,7 +232,26 @@ re.fit.quan.errors <- fit.health.quan.errors(y = y.vec,
 ```
 
 Check trace plots of the intercept, basis coefficients, and the
-over-dispersion parameter. ![tracepl_gauind](./images/trace_estquan.png)
+over-dispersion parameter.
+
+``` r
+par(mfrow = c(2, 2))
+for(i in 1:3){
+  plot(re.fit.quan.errors$beta[,i], type = "l", ylab = paste0("beta", i-1))
+  abline(h = beta.true[i], col = "red")
+  if(i == 1){
+    legend("topright", col = "red", lty = 1, legend = "true value")
+  }else{
+    legend("bottomright", col = "red", lty = 1, legend = "true value")
+  }
+}
+plot(re.fit.quan.errors$parm[,"xi"], 
+     type = "l", ylab = "over-dispersion parameter")
+abline(h = xi, col = "red")
+legend("bottomright", col = "red", lty = 1, legend = "true value")
+```
+
+![tracepl_gauind](./images/trace_estquan.png)
 
 ## Example 2: Exposure quantile functions are temporally correlated
 
