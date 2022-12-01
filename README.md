@@ -114,6 +114,11 @@ eta.vec.true = beta0 + integration.vec
 q.nb = 1/(1+exp(eta.vec.true))
 y.vec <- apply(cbind(rep(xi, num.time), q.nb), 1,
                function(x) rnbinom(1, size = x[1], prob = x[2]))
+
+dat.sim.ind.gau <- list(exp = x.sim.mat,
+                        y = y.vec,
+                        mean.true = mean.vec,
+                        sd.true = sd.vec)
 ```
 
 ### Fit the health model assuming exposure quantile functions are known
@@ -152,7 +157,8 @@ exposure quantile functions are known.
 re.fit.knownquan <- fit.health.knownquan(y = y.vec,
                                          Z.design = NULL,
                                          n = 1, dist.type = "normal",
-                                         mean = mean.vec, sd = sd.vec,
+                                         mean = dat.sim.ind.gau$mean.true, 
+                                         sd = dat.sim.ind.gau$sd.true,
                                          rand.int = FALSE,
                                          niter = 5000, burn_in = 2500)
 ```
@@ -192,13 +198,22 @@ using four piece-wise Gaussian functions.
 ``` r
 re.fit.exp <- NULL
 for(i in 1:1000){
-  re.fit.exp[[i]] <- fit.exposure(x.ind = x.sim.mat[i, ],
+  re.fit.exp[[i]] <- fit.exposure(x.ind = dat.sim.ind.gau$exp[i, ],
                                   basis.fun = "Gau", 
                                   L = 4, niter = 10000, inde = T)
 }
 ```
 
-Plot estimated means versus true means.
+Plot of estimated means versus true means.
+
+``` r
+median.hat <- sapply(re.fit.exp, function(x) mean(x$parm[-c(1:5000),1]))
+plot(median.hat, dat.sim.ind.gau$mean.true, pch = 20, 
+     xlab = "estimated mean", ylab = "true means")
+abline(a = 0, b = 1, col = "red")
+legend("topleft", col = "red", lty = 1, legend = "diagonal line")
+```
+
 ![estmean_gauind](./images/estimated_means_indgau.png)
 
 ### Fit the health model using estimated exposure quantile functions
@@ -219,8 +234,8 @@ MVNprior.mu.pre.ind <- exposure.prior(re = re.fit.exp,
 
 re.fit.quan.errors <- 
   fit.health.quan.errors(y = y.vec, L = 4, basis.fun = "Gau", n = 1, 
-                         theta.pri.mu = MVNprior.mu.pre.ind.all$theta.pri.mu, 
-                         theta.pri.pre = MVNprior.mu.pre.ind.all$theta.pri.pre,
+                         theta.pri.mu = MVNprior.mu.pre.ind$theta.pri.mu, 
+                         theta.pri.pre = MVNprior.mu.pre.ind$theta.pri.pre,
                          rand.int = FALSE, niter = 5000, burn_in = 2500)
 ```
 
