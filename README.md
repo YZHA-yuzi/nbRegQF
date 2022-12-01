@@ -1,12 +1,11 @@
 README
 ================
 
-We have proposed a negative-binomial modeling framework which uses
-exposure quantile functions as the function covaraite to account for
-within-unit exposure heterogeneity for studying short-term effects of
-environmental exposures using exposure and health data collected across
-time and/or space. This proposed approch has been implemented in an R
-package `nbRegQF`.
+Our negative-binomial modeling framework uses exposure quantile
+functions as the a functional covaraite to account for within-unit
+exposure heterogeneity for studying short-term effects of environmental
+exposures across time and/or space. This approach has been implemented
+in an R package `nbRegQF`.
 
 In this document, we first introduce how to install the package. Then,
 we aim to demonstrate: (1) the use of the function
@@ -14,15 +13,13 @@ we aim to demonstrate: (1) the use of the function
 using known exposure quantile functions as the covariate to estimate
 short-term effects of environmental exposures in a time-series design,
 (2) the use of function `fit.exposure` to estimate exposure quantile
-functions using previously proposed semiparametric Bayesian approaches
-based on individual-level exposures, (3) the use of `exposure.prior` to
-prepare means and precision matrices of multivariate normal (MVN) priors
-assumed for basis coefficients of basis functions used for expanding
-exposure quantile functions, those means and matrices will be used as
-inputs for the function `fit.health.quan.errors`, and (4) the use of
-`fit.health.quan.errors` to fit NB regression models using estimated
-exposure quantile functions while accounting for uncertainties
-associated with estimating quantile functions.
+functions using semiparametric Bayesian approaches based on
+individual-level exposures, (3) the use of `exposure.prior` to prepare
+means and precision matrices of multivariate normal (MVN) priors for
+basis coefficients used for expanding exposure quantile functions, and
+(4) the use of `fit.health.quan.errors` to fit NB regression models
+using estimated exposure quantile functions while accounting for
+uncertainties associated with estimating quantile functions.
 
 # Installation
 
@@ -36,8 +33,8 @@ install_github("YZHA-yuzi/nbRegQF")
 
 ## The health model
 
-The proposed NB regression models using exposure quantile functions as
-the functional covariate is given below
+The proposed NB regression models using exposure quantile functions as a
+functional covariate is given below
 
 ![
 \\begin{align\*}
@@ -123,10 +120,11 @@ y.vec <- apply(cbind(rep(xi, num.time), q.nb), 1,
 
 The
 ![\\beta(\\tau)](https://latex.codecogs.com/png.latex?%5Cbeta%28%5Ctau%29 "\beta(\tau)")
-is modeled via the basis expansion. Specifically,
+is modeled via basis expansion. Specifically,
 ![\\beta(\\tau)](https://latex.codecogs.com/png.latex?%5Cbeta%28%5Ctau%29 "\beta(\tau)")
 is expanded using orthonormal Bernstein polynomials of degree
-![n](https://latex.codecogs.com/png.latex?n "n"), in this example we set
+![n](https://latex.codecogs.com/png.latex?n "n"), which in this example
+we set
 ![n = 1](https://latex.codecogs.com/png.latex?n%20%3D%201 "n = 1"). To
 approximate
 ![\\beta(\\tau) = \\tau](https://latex.codecogs.com/png.latex?%5Cbeta%28%5Ctau%29%20%3D%20%5Ctau "\beta(\tau) = \tau")
@@ -205,15 +203,13 @@ Plot estimated means versus true means.
 
 ### Fit the health model using estimated exposure quantile functions
 
-With posterior samples of basis coefficients used for expanding exposure
+With posterior samples of basis coefficients used for modeling exposure
 quantile functions, the means and precision matrices of MVN priors
-assumed for basis coefficients of basis functions used for expanding
-exposure quantile functions can be computed using the function
-`exposure.prior`. Outputs from this function will be used as inputs for
-the function `fit.health.quan.errors`, which fits the NB model while
-accounting for uncertainties associated with the estimation of quantile
-functions. Again, as in the case of assuming quantile functions are
-known,
+computed using the function `exposure.prior`. Outputs from this function
+will be used as inputs for the function `fit.health.quan.errors`, which
+fits the NB model while accounting for uncertainties associated with the
+estimation of quantile functions. Again, as in the case of assuming
+quantile functions are known,
 ![\\beta(\\tau)](https://latex.codecogs.com/png.latex?%5Cbeta%28%5Ctau%29 "\beta(\tau)")
 is expanded using orthonormal Bernstein polynomials of degree 1.
 
@@ -221,14 +217,11 @@ is expanded using orthonormal Bernstein polynomials of degree 1.
 MVNprior.mu.pre.ind <- exposure.prior(re = re.fit.exp,
                                       burn_in = 5000, inde = T)
 
-re.fit.quan.errors <- fit.health.quan.errors(y = y.vec, 
-                                             L = 4, 
-                                             basis.fun = "Gau", 
-                                             n = 1, 
-                                             theta.pri.mu = MVNprior.mu.pre.ind.all$theta.pri.mu, 
-                                             theta.pri.pre = MVNprior.mu.pre.ind.all$theta.pri.pre,
-                                             rand.int = FALSE,
-                                             niter = 5000, burn_in = 2500)
+re.fit.quan.errors <- 
+  fit.health.quan.errors(y = y.vec, L = 4, basis.fun = "Gau", n = 1, 
+                         theta.pri.mu = MVNprior.mu.pre.ind.all$theta.pri.mu, 
+                         theta.pri.pre = MVNprior.mu.pre.ind.all$theta.pri.pre,
+                         rand.int = FALSE, niter = 5000, burn_in = 2500)
 ```
 
 Check trace plots of the intercept, basis coefficients, and the
@@ -263,7 +256,7 @@ contains individual-level exposures and aggregate health outcomes.
 We begin with simulating individual-level exposures assuming
 time-specific quantile functions are temporally correlated across time
 points by introducing first-order Gaussian Markov random field processes
-for unconstrained basis coefficients used for expanding quantile
+for unconstrained basis coefficients used for modeling quantile
 functions. To simulate individual-level exposures based on quantile
 processes having temporal dependency, exposure quantile functions are
 specified via the basis expansion. In the basis expansion, we use four
@@ -361,7 +354,7 @@ dat.sim.ar1.gamma <- list(alph.vec.true = alph.vec.true,
 
 ### Estimate temporally correlated quantile functions
 
-**NOTE**: the following code takes about **4** hours to run in a compute
+**NOTE**: the following code takes about **4** hours to run on a compute
 with 2.9 GHz 6-Core Intel Core i9 and 32 Gb memory.
 
 ``` r
@@ -373,7 +366,7 @@ re.fit.exp.ar1 <- fit.exposure(x.ind = dat.sim.ar1.gamma$x.sim.mat,
 ### Fit the health model using estimated temporally correlated quantile functions
 
 As steps outlined previously for fitting the model with estimated
-quantile functions which are assumed to be independent, we first obtain
+quantile functions, which are assumed to be independent, we first obtain
 the means and precision matrices of MVN priors assumed for basis
 coefficients using the function `exposure.prior` and then fit the health
 model using the function `fit.health.quan.errors`.
@@ -383,7 +376,7 @@ MVNprior.mu.pre.ar1 <- exposure.prior(re = re.fit.exp.ar1,
                                       burn_in = 5000, inde = F)
 
 re.fit.ar1.quan.errors <- 
-  fit.health.quan.errors(y = dat.all$health2[,1],
+  fit.health.quan.errors(y = dat.sim.ar1.gamma$y,
                          L = 4, basis.fun = "Gamma", basis.shape = 5,
                          n = 1, 
                          theta.pri.mu = MVNprior.mu.pre.ar1$theta.pri.mu, 
